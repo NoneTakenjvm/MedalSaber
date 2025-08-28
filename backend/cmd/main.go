@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"nonetaken.dev/medalsaber/database"
 	"nonetaken.dev/medalsaber/websocket"
@@ -24,6 +23,4 @@ func main() {
 			panic(err)
 		}
 	}()
-
-	http.ListenAndServe(":8080", nil)
 }
