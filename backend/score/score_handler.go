@@ -2,7 +2,6 @@ package score
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 )
 
@@ -41,5 +40,7 @@ func HandleScore(platform int, message []byte) {
 		}
 		incomingScore = &beatleaderMessage
 	}
-	fmt.Printf("Platform: %d, Player: %s\n", platform, incomingScore.GetPlayerId())
+	if incomingScore.GetCountry() == "lol" {
+
+	}
 }

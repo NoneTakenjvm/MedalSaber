@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"nonetaken.dev/medalsaber/score"
@@ -25,21 +26,33 @@ func Initialise() {
 }
 
 func initSocket(url string, callback func(message []byte)) {
-	// Connect to the Scoresaber socket
-	c, _, err := websocket.DefaultDialer.Dial(url, nil)
-	if err != nil {
-		fmt.Printf("Error connecting to socket: %v", err)
-		return
-	}
-	// Close the socket when the function returns
-	defer c.Close()
-
-	// Read messages from the server
 	for {
-		_, message, err := c.ReadMessage()
+		// Connect to the socket
+		c, _, err := websocket.DefaultDialer.Dial(url, nil)
 		if err != nil {
+			fmt.Printf("Error connecting to socket %s: %v\n", url, err)
+			// Wait before retrying
+			time.Sleep(5 * time.Second)
 			continue
 		}
-		callback(message)
+
+		fmt.Printf("Connected to %s\n", url)
+
+		// Close the socket when the function returns
+		defer c.Close()
+
+		// Read messages from the server
+		for {
+			_, message, err := c.ReadMessage()
+			if err != nil {
+				fmt.Printf("Error reading message from %s: %v\n", url, err)
+				break
+			}
+			callback(message)
+		}
+		fmt.Printf("Connection lost to %s, reconnecting...\n", url)
+
+		// Wait before reconnecting
+		time.Sleep(5 * time.Second)
 	}
 }
