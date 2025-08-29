@@ -126,7 +126,7 @@ type BeatLeaderSong struct {
 	MapperID        int     `json:"mapperId"`
 	CollaboratorIds any     `json:"collaboratorIds"`
 	CoverImage      string  `json:"coverImage"`
-	BPM             int     `json:"bpm"`
+	BPM             float64 `json:"bpm"`
 	Duration        float64 `json:"duration"`
 	FullCoverImage  any     `json:"fullCoverImage"`
 	Explicity       int     `json:"explicity"`
