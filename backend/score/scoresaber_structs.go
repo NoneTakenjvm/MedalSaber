@@ -1,6 +1,9 @@
 package score
 
-import "strconv"
+import (
+	"log"
+	"strconv"
+)
 
 /*
  * Structs for the ScoreSaber API
@@ -25,6 +28,31 @@ func (message *IncomingMessageWithScore) GetScore() int {
 }
 func (message *IncomingMessageWithScore) GetPlatform() int {
 	return ScoresaberPlatform
+}
+func (message *IncomingMessageWithScore) IsRanked() bool {
+	return message.Score.Score.PP > 0
+}
+func (message *IncomingMessageWithScore) GetScoreId() string {
+	return strconv.Itoa(message.Score.Score.ID)
+}
+func (message *IncomingMessageWithScore) GetMaxScore() int {
+	return int(message.Score.Leaderboard.MaxScore)
+}
+func (message *IncomingMessageWithScore) GetTimestamp() int64 {
+	num, err := strconv.ParseInt(message.Score.Score.TimeSet, 10, 64)
+	if err != nil {
+		log.Printf("error when parsing timestamp: %s\n", err)
+	}
+	return num
+}
+func (message *IncomingMessageWithScore) GetModifiers() string {
+	return message.Score.Score.Modifiers
+}
+func (message *IncomingMessageWithScore) GetBadCuts() int {
+	return message.Score.Score.BadCuts
+}
+func (message *IncomingMessageWithScore) GetMissedNotes() int {
+	return message.Score.Score.MissedNotes
 }
 
 type ScoresaberPlayer struct {

@@ -1,5 +1,9 @@
 package score
 
+import (
+	"strconv"
+)
+
 type BeatLeaderResponse struct {
 	ContextExtensions []ContextExtension    `json:"contextExtensions"`
 	MyScore           any                   `json:"myScore"`
@@ -69,6 +73,27 @@ func (message *BeatLeaderResponse) GetScore() int {
 }
 func (message *BeatLeaderResponse) GetPlatform() int {
 	return BeatleaderPlatform
+}
+func (message *BeatLeaderResponse) IsRanked() bool {
+	return message.PP > 0
+}
+func (message *BeatLeaderResponse) GetScoreId() string {
+	return strconv.Itoa(message.ID)
+}
+func (message *BeatLeaderResponse) GetMaxScore() int {
+	return message.BaseScore
+}
+func (message *BeatLeaderResponse) GetTimestamp() int64 {
+	return message.Timepost
+}
+func (message *BeatLeaderResponse) GetModifiers() string {
+	return message.Modifiers
+}
+func (message *BeatLeaderResponse) GetBadCuts() int {
+	return message.BadCuts
+}
+func (message *BeatLeaderResponse) GetMissedNotes() int {
+	return message.MissedNotes
 }
 
 type ContextExtension struct {
