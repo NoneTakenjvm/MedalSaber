@@ -65,17 +65,10 @@ func fetchDocuments(collection *mongo.Collection, filter bson.M, options ...opti
 }
 
 // Insert a document into the provided collection
-func InsertDocument(collection *mongo.Collection, document interface{}, opts ...options.InsertOneOptions) error {
-	bsonBytes, err := bson.Marshal(document)
-	if err != nil {
-		return fmt.Errorf("error marshaling document: %v", err)
-	}
-	var bsonDoc bson.M
-	err = bson.Unmarshal(bsonBytes, &bsonDoc)
-	if err != nil {
-		return fmt.Errorf("error converting to bson.M: %v", err)
-	}
-	_, err = collection.InsertOne(context.Background(), bsonDoc)
+func InsertDocument(collection *mongo.Collection, document interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := collection.InsertOne(ctx, document)
 	if err != nil {
 		return fmt.Errorf("error inserting document: %v", err)
 	}
@@ -84,7 +77,9 @@ func InsertDocument(collection *mongo.Collection, document interface{}, opts ...
 
 // Delete the provided document
 func DeleteDocument(collection *mongo.Collection, filter bson.M) error {
-	_, err := collection.DeleteOne(context.Background(), filter)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := collection.DeleteOne(ctx, filter)
 	if err != nil {
 		return fmt.Errorf("error deleting document: %v", err)
 	}
@@ -93,7 +88,9 @@ func DeleteDocument(collection *mongo.Collection, filter bson.M) error {
 
 // Update the provided document
 func UpdateDocument(collection *mongo.Collection, filter bson.M, update bson.M) error {
-	_, err := collection.UpdateOne(context.Background(), filter, update)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("error updating document: %v", err)
 	}

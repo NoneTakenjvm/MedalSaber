@@ -2,11 +2,15 @@ package database
 
 import (
 	"context"
+	"sync"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
+
+// Lock for player creation to prevent race conditions
+var playerCreationMutex sync.Mutex
 
 // Fetch a score from the database
 func GetScore(platform int, leaderboardId string, playerId string) (Score, error) {
@@ -36,17 +40,38 @@ func GetPlayer(platform int, playerId string) (*Player, error) {
 	if err != nil {
 		// Check if it's a "not found" error specifically
 		if err == mongo.ErrNoDocuments {
-			// Player doesn't exist, create a new one
-			newPlayer := Player{
-				PlayerId: playerId,
-				Platform: platform,
-				Medals:   0,
+			// Use mutex to prevent race conditions when creating players
+			playerCreationMutex.Lock()
+			defer playerCreationMutex.Unlock()
+
+			// Double-check: try to fetch again in case another goroutine created it
+			document, err = fetchDocument(Collections.Players, bson.M{
+				"platform": platform,
+				"playerId": playerId,
+			})
+			if err == nil {
+				// Player was created by another goroutine, decode and return
+				var player Player
+				err = document.Decode(&player)
+				if err != nil {
+					return nil, err
+				}
+				return &player, nil
 			}
-			err = InsertDocument(Collections.Players, newPlayer)
-			if err != nil {
-				return nil, err
+
+			// Still not found, create a new one
+			if err == mongo.ErrNoDocuments {
+				newPlayer := Player{
+					PlayerId: playerId,
+					Platform: platform,
+					Medals:   0,
+				}
+				err = InsertDocument(Collections.Players, newPlayer)
+				if err != nil {
+					return nil, err
+				}
+				return &newPlayer, nil
 			}
-			return &newPlayer, nil
 		}
 		// Some other error occurred, return it
 		return nil, err
