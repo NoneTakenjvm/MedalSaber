@@ -151,7 +151,7 @@ func isPlayerWithinTopTen(topTenScores []database.Score, playerId string) int {
 // Return what position within the top 10 the incoming score would be
 func getScorePositionInTopTen(topTenScores []database.Score, incomingScore ScoreMessage) int {
 	if len(topTenScores) == 0 {
-		return 1
+		return 0
 	}
 	for i, score := range topTenScores {
 		if incomingScore.GetScore() > score.Score {
