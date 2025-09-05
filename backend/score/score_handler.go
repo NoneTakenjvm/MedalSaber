@@ -14,21 +14,21 @@ const (
 	BeatleaderPlatform int = 2
 )
 
-// The medal value of each position in the leaderboard
+// The medal value of each (indexed) position in the leaderboard 
 var MedalValues = map[int]int{
-	1:  10,
-	2:  8,
-	3:  6,
-	4:  5,
-	5:  4,
-	6:  3,
-	7:  2,
+	0:  10,
+	1:  8,
+	2:  6,
+	3:  5,
+	4:  4,
+	5:  3,
+	6:  2,
+	7:  1,
 	8:  1,
-	9:  1,
-	10: 1,
+	9: 1,
 	// We need to specify the 11th position score because scores pushed out of the top 10
 	// will need to know how many medals position 11 is worth, which is 0!
-	11: 0,
+	10: 0,
 }
 
 // Generic score interface for all platforms
