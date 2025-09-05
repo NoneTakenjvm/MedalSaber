@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/joho/godotenv/autoload"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -33,7 +32,7 @@ func Initialise() {
 		panic(err)
 	}
 	Client = client
-	databaseName := os.Getenv("MONG_DATABASE")
+	databaseName := os.Getenv("MONGO_DATABASE")
 	// Set the collections within the collections struct
 	collections := collections{
 		Players: client.Database(databaseName).Collection("players"),
@@ -67,8 +66,17 @@ func fetchDocuments(collection *mongo.Collection, filter bson.M, options ...opti
 }
 
 // Insert a document into the provided collection
-func InsertDocument(collection *mongo.Collection, document *bson.M, opts ...options.InsertOneOptions) error {
-	_, err := collection.InsertOne(context.Background(), document)
+func InsertDocument(collection *mongo.Collection, document interface{}, opts ...options.InsertOneOptions) error {
+	bsonBytes, err := bson.Marshal(document)
+	if err != nil {
+		return fmt.Errorf("error marshaling document: %v", err)
+	}
+	var bsonDoc bson.M
+	err = bson.Unmarshal(bsonBytes, &bsonDoc)
+	if err != nil {
+		return fmt.Errorf("error converting to bson.M: %v", err)
+	}
+	_, err = collection.InsertOne(context.Background(), bsonDoc)
 	if err != nil {
 		return fmt.Errorf("error inserting document: %v", err)
 	}
@@ -80,6 +88,15 @@ func DeleteDocument(collection *mongo.Collection, filter bson.M) error {
 	_, err := collection.DeleteOne(context.Background(), filter)
 	if err != nil {
 		return fmt.Errorf("error deleting document: %v", err)
+	}
+	return nil
+}
+
+// Update the provided document
+func UpdateDocument(collection *mongo.Collection, filter bson.M, update bson.M) error {
+	_, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return fmt.Errorf("error updating document: %v", err)
 	}
 	return nil
 }

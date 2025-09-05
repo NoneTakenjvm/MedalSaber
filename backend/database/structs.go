@@ -14,16 +14,21 @@ type Score struct {
 	MissedNotes   int    `bson:"missedNotes"`
 }
 
+// Get the player who set the score
+func (score *Score) GetPlayer() *Player {
+	player, err := GetPlayer(score.Platform, score.PlayerId)
+	if err != nil {
+		return nil
+	}
+	return player
+}
+
 // Player struct ----------------
 
 type Player struct {
 	PlayerId string `bson:"playerId"`
 	Platform int    `bson:"platform"`
 	Medals   int    `bson:"medals"`
-}
-
-func (player *Player) UpdateMedalCount(positionNew int, positionOld int) {
-
 }
 
 // Change struct ----------------

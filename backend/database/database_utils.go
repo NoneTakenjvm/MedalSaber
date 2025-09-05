@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -25,14 +25,25 @@ func GetScore(platform int, leaderboardId string, playerId string) (Score, error
 	return score, nil
 }
 
-// Fetch a player from the database
+// Fetch a player from the database, creating one if they don't exist
 func GetPlayer(platform int, playerId string) (*Player, error) {
 	document, err := fetchDocument(Collections.Players, bson.M{
 		"platform": platform,
 		"playerId": playerId,
 	})
+	// Create the player document if they don't exist already
 	if err != nil {
-		return nil, err
+		// Player doesn't exist, create a new one
+		newPlayer := Player{
+			PlayerId: playerId,
+			Platform: platform,
+			Medals:   0,
+		}
+		err = InsertDocument(Collections.Players, newPlayer)
+		if err != nil {
+			return nil, err
+		}
+		return &newPlayer, nil
 	}
 	var player Player
 	err = document.Decode(&player)
@@ -97,10 +108,5 @@ func GetTopTen(platform int, leaderboardId string, country string, playerId stri
 	if err = cursor.All(context.Background(), &scores); err != nil {
 		return []Score{}, err
 	}
-	return scores, bson.ErrNilReader
+	return scores, nil
 }
-
-func UpdateMedalCount(platform int, playerId string, positionNew int, positionOld int) {
-	
-}
-

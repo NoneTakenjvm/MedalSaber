@@ -3,6 +3,7 @@ package score
 import (
 	"log"
 	"strconv"
+	"time"
 )
 
 /*
@@ -17,8 +18,17 @@ type IncomingMessageWithScore struct {
 func (message *IncomingMessageWithScore) GetPlayerId() string {
 	return message.Score.Score.LeaderboardPlayerInfo.ID
 }
+func (message *IncomingMessageWithScore) GetPlayerName() string {
+	return message.Score.Score.LeaderboardPlayerInfo.Name
+}
 func (message *IncomingMessageWithScore) GetLeaderboardId() string {
 	return strconv.Itoa(message.Score.Leaderboard.ID)
+}
+func (message *IncomingMessageWithScore) GetLeaderboardName() string {
+	return message.Score.Leaderboard.SongName
+}
+func (message *IncomingMessageWithScore) GetDifficulty() string {
+	return message.Score.Leaderboard.Difficulty.DifficultyRaw
 }
 func (message *IncomingMessageWithScore) GetCountry() string {
 	return message.Score.Score.LeaderboardPlayerInfo.Country
@@ -39,11 +49,13 @@ func (message *IncomingMessageWithScore) GetMaxScore() int {
 	return int(message.Score.Leaderboard.MaxScore)
 }
 func (message *IncomingMessageWithScore) GetTimestamp() int64 {
-	num, err := strconv.ParseInt(message.Score.Score.TimeSet, 10, 64)
+	// Parse ISO 8601 timestamp format
+	t, err := time.Parse(time.RFC3339, message.Score.Score.TimeSet)
 	if err != nil {
 		log.Printf("error when parsing timestamp: %s\n", err)
+		return 0
 	}
-	return num
+	return t.Unix()
 }
 func (message *IncomingMessageWithScore) GetModifiers() string {
 	return message.Score.Score.Modifiers

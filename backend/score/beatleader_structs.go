@@ -62,8 +62,17 @@ type BeatLeaderResponse struct {
 func (message *BeatLeaderResponse) GetPlayerId() string {
 	return message.Player.ID
 }
+func (message *BeatLeaderResponse) GetPlayerName() string {
+	return message.Player.Name
+}
 func (message *BeatLeaderResponse) GetLeaderboardId() string {
 	return message.LeaderboardID
+}
+func (message *BeatLeaderResponse) GetLeaderboardName() string {
+	return message.Leaderboard.Song.Name
+}
+func (message *BeatLeaderResponse) GetDifficulty() string {
+	return message.Leaderboard.Difficulty.DifficultyName
 }
 func (message *BeatLeaderResponse) GetCountry() string {
 	return message.Player.Country
@@ -81,7 +90,7 @@ func (message *BeatLeaderResponse) GetScoreId() string {
 	return strconv.Itoa(message.ID)
 }
 func (message *BeatLeaderResponse) GetMaxScore() int {
-	return message.BaseScore
+	return message.Leaderboard.Difficulty.MaxScore
 }
 func (message *BeatLeaderResponse) GetTimestamp() int64 {
 	return message.Timepost
