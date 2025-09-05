@@ -130,7 +130,7 @@ func handleForCountry(incomingScore ScoreMessage, country string) {
 		log.Printf("error when inserting new score: %s\n", err)
 	}
 	// Finally, handle the medal changes for all players
-	handleMedalChanges(medalDeltas, incomingScore)
+	handleMedalChanges(medalDeltas, incomingScore, country)
 	log.Printf("the score from player %s (platform: %d, id: %s, country: %s) on leaderboard %s (difficulty: %s) has been handled! the player earned position %d",
 		incomingScore.GetPlayerName(), incomingScore.GetPlatform(), incomingScore.GetPlayerId(), country, incomingScore.GetLeaderboardName(), incomingScore.GetDifficulty(), position)
 }
@@ -195,10 +195,10 @@ func calculateMedalDeltas(medalDeltas map[string]int, topTenScores []database.Sc
 }
 
 // Handle medal changes for all players in the map
-func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage) {
+func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, country string) {
 	// Apply the medal deltas to all the players in the map
 	for playerId, delta := range medalDeltas {
-		player, err := database.GetPlayer(incomingScore.GetPlatform(), playerId)
+		player, err := database.GetPlayer(incomingScore.GetPlatform(), country, playerId)
 		if err != nil {
 			log.Printf("error when getting player: %s\n", err)
 			continue

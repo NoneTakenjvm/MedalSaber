@@ -31,10 +31,11 @@ func GetScore(platform int, leaderboardId string, playerId string) (Score, error
 }
 
 // Fetch a player from the database, creating one if they don't exist
-func GetPlayer(platform int, playerId string) (*Player, error) {
+func GetPlayer(platform int, country string, playerId string) (*Player, error) {
 	document, err := fetchDocument(Collections.Players, bson.M{
 		"platform": platform,
 		"playerId": playerId,
+		"country" : country,
 	})
 	// Create the player document if they don't exist already
 	if err != nil {
