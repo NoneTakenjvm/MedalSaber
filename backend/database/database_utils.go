@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
@@ -33,17 +34,22 @@ func GetPlayer(platform int, playerId string) (*Player, error) {
 	})
 	// Create the player document if they don't exist already
 	if err != nil {
-		// Player doesn't exist, create a new one
-		newPlayer := Player{
-			PlayerId: playerId,
-			Platform: platform,
-			Medals:   0,
+		// Check if it's a "not found" error specifically
+		if err == mongo.ErrNoDocuments {
+			// Player doesn't exist, create a new one
+			newPlayer := Player{
+				PlayerId: playerId,
+				Platform: platform,
+				Medals:   0,
+			}
+			err = InsertDocument(Collections.Players, newPlayer)
+			if err != nil {
+				return nil, err
+			}
+			return &newPlayer, nil
 		}
-		err = InsertDocument(Collections.Players, newPlayer)
-		if err != nil {
-			return nil, err
-		}
-		return &newPlayer, nil
+		// Some other error occurred, return it
+		return nil, err
 	}
 	var player Player
 	err = document.Decode(&player)

@@ -46,10 +46,9 @@ func Initialise() {
 func fetchDocument(collection *mongo.Collection, filter bson.M) (*mongo.SingleResult, error) {
 	context, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	var result *mongo.SingleResult
-	err := collection.FindOne(context, filter)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching document: %v", err)
+	result := collection.FindOne(context, filter)
+	if result.Err() != nil {
+		return nil, result.Err()
 	}
 	return result, nil
 }
