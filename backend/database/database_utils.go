@@ -35,7 +35,6 @@ func GetPlayer(platform int, country string, playerId string) (*Player, error) {
 	document, err := fetchDocument(Collections.Players, bson.M{
 		"platform": platform,
 		"playerId": playerId,
-		"country" : country,
 	})
 	// Create the player document if they don't exist already
 	if err != nil {
@@ -65,6 +64,7 @@ func GetPlayer(platform int, country string, playerId string) (*Player, error) {
 				newPlayer := Player{
 					PlayerId: playerId,
 					Platform: platform,
+					Country: country,
 					Medals:   0,
 				}
 				err = InsertDocument(Collections.Players, newPlayer)
@@ -82,6 +82,12 @@ func GetPlayer(platform int, country string, playerId string) (*Player, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Create a defer to check if the player has changed country
+	defer func (){
+		if player.Country != country {
+			UpdateDocument(Collections.Players, bson.M{"playerId": playerId, "platform": platform}, bson.M{"$set": bson.M{"country": country}})
+		}
+	}()
 	return &player, nil
 }
 
