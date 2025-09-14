@@ -96,3 +96,14 @@ func UpdateDocument(collection *mongo.Collection, filter bson.M, update bson.M) 
 	}
 	return nil
 }
+
+// Update multiple documents matching the filter
+func UpdateManyDocuments(collection *mongo.Collection, filter bson.M, update bson.M) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("error updating documents: %v", err)
+	}
+	return nil
+}

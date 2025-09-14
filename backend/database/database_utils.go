@@ -64,7 +64,7 @@ func GetPlayer(platform int, country string, playerId string) (*Player, error) {
 				newPlayer := Player{
 					PlayerId: playerId,
 					Platform: platform,
-					Country: country,
+					Country:  country,
 					Medals:   0,
 				}
 				err = InsertDocument(Collections.Players, newPlayer)
@@ -83,9 +83,12 @@ func GetPlayer(platform int, country string, playerId string) (*Player, error) {
 		return nil, err
 	}
 	// Create a defer to check if the player has changed country
-	defer func (){
+	defer func() {
 		if player.Country != country {
+			// Update the player's country
 			UpdateDocument(Collections.Players, bson.M{"playerId": playerId, "platform": platform}, bson.M{"$set": bson.M{"country": country}})
+			// Update the player's scores to the new country
+			UpdateManyDocuments(Collections.Scores, bson.M{"playerId": playerId, "platform": platform}, bson.M{"$set": bson.M{"country": country}})
 		}
 	}()
 	return &player, nil
