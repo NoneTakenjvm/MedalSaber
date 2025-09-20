@@ -223,7 +223,8 @@ func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, 
 				ResponsibleLeaderboardId: incomingScore.GetLeaderboardId(),
 				ResponsiblePlayerId: incomingScore.GetPlayerId(),
 				ResponsibleScoreId: incomingScore.GetScoreId(),
-			}); err != nil {
+			}); 
+		err != nil {
 			log.Printf("error when inserting change: %s\n", err)
 		}
 	}
