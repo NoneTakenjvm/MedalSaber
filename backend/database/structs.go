@@ -35,7 +35,6 @@ type Player struct {
 // Change struct ----------------
 
 type Change struct {
-	ChangeId                 string `bson:"changeId"`
 	Platform                 int    `bson:"platform"`
 	PlayerId                 string `bson:"playerId"`
 	Timestamp                int64  `bson:"timestamp"`

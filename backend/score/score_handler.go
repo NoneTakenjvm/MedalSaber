@@ -203,12 +203,28 @@ func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, 
 			log.Printf("error when getting player: %s\n", err)
 			continue
 		}
+		// Update the medal counts
 		player.Medals += delta
 		if err = database.UpdateDocument(
 			database.Collections.Players,
 			bson.M{"playerId": playerId, "platform": incomingScore.GetPlatform()},
-			bson.M{"$set": bson.M{"medals": player.Medals}}); err != nil {
+			bson.M{"$set": bson.M{"medals": player.Medals}}); 
+		err != nil {
 			log.Printf("error when updating player: %s\n", err)
+		}
+		// Record the changes
+		if err = database.InsertDocument(
+			database.Collections.Changes,
+			database.Change{
+				Platform: incomingScore.GetPlatform(),
+				PlayerId: playerId,
+				Timestamp: incomingScore.GetTimestamp(),
+				MedalChange: delta,
+				ResponsibleLeaderboardId: incomingScore.GetLeaderboardId(),
+				ResponsiblePlayerId: incomingScore.GetPlayerId(),
+				ResponsibleScoreId: incomingScore.GetScoreId(),
+			}); err != nil {
+			log.Printf("error when inserting change: %s\n", err)
 		}
 	}
 }
