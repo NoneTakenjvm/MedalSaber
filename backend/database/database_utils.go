@@ -13,11 +13,10 @@ import (
 var playerCreationMutex sync.Mutex
 
 // Fetch a score from the database
-func GetScore(platform int, leaderboardId string, playerId string) (Score, error) {
+func GetScore(platform int, scoreId string) (Score, error) {
 	document, err := fetchDocument(Collections.Scores, bson.M{
 		"platform":      platform,
-		"playerId":      playerId,
-		"leaderboardId": leaderboardId,
+		"scoreId":       scoreId,
 	})
 	if err != nil {
 		return Score{}, err
@@ -31,7 +30,7 @@ func GetScore(platform int, leaderboardId string, playerId string) (Score, error
 }
 
 // Fetch a player from the database, creating one if they don't exist
-func GetPlayer(platform int, country string, playerId string) (*Player, error) {
+func GetPlayer(platform int, country string, playerId string, createIfAbsent bool) (*Player, error) {
 	document, err := fetchDocument(Collections.Players, bson.M{
 		"platform": platform,
 		"playerId": playerId,
@@ -60,7 +59,7 @@ func GetPlayer(platform int, country string, playerId string) (*Player, error) {
 			}
 
 			// Still not found, create a new one
-			if err == mongo.ErrNoDocuments {
+			if err == mongo.ErrNoDocuments && createIfAbsent {
 				newPlayer := Player{
 					PlayerId: playerId,
 					Platform: platform,
