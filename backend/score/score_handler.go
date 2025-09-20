@@ -131,6 +131,8 @@ func handleForCountry(incomingScore ScoreMessage, country string) {
 	}
 	// Finally, handle the medal changes for all players
 	handleMedalChanges(medalDeltas, incomingScore, country)
+	// Check if the player's username has changed
+	handlePotentialNameChange(newScore.GetPlayer(), incomingScore)
 	log.Printf("the score from player %s (platform: %d, id: %s, country: %s) on leaderboard %s (difficulty: %s) has been handled! the player earned position %d",
 		incomingScore.GetPlayerName(), incomingScore.GetPlatform(), incomingScore.GetPlayerId(), country, incomingScore.GetLeaderboardName(), incomingScore.GetDifficulty(), position)
 }
@@ -198,7 +200,7 @@ func calculateMedalDeltas(medalDeltas map[string]int, topTenScores []database.Sc
 func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, country string) {
 	// Apply the medal deltas to all the players in the map
 	for playerId, delta := range medalDeltas {
-		player, err := database.GetPlayer(incomingScore.GetPlatform(), country, playerId)
+		player, err := database.GetPlayer(incomingScore.GetPlatform(), country, playerId, true)
 		if err != nil {
 			log.Printf("error when getting player: %s\n", err)
 			continue
@@ -226,6 +228,18 @@ func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, 
 			}); 
 		err != nil {
 			log.Printf("error when inserting change: %s\n", err)
+		}
+	}
+}
+
+func handlePotentialNameChange(player *database.Player, incomingScore ScoreMessage) {
+	if player.Username != incomingScore.GetPlayerName() {
+		player.Username = incomingScore.GetPlayerName()
+		if err := database.UpdateDocument(
+			database.Collections.Players,
+			bson.M{"playerId": player.PlayerId, "platform": incomingScore.GetPlatform()},
+			bson.M{"$set": bson.M{"username": player.Username}}); err != nil {
+			log.Printf("error when updating player: %s\n", err)
 		}
 	}
 }

@@ -16,7 +16,7 @@ type Score struct {
 
 // Get the player who set the score
 func (score *Score) GetPlayer() *Player {
-	player, err := GetPlayer(score.Platform, score.PlayerId, score.Country)
+	player, err := GetPlayer(score.Platform, score.PlayerId, score.Country, false)
 	if err != nil {
 		return nil
 	}
@@ -28,8 +28,9 @@ func (score *Score) GetPlayer() *Player {
 type Player struct {
 	PlayerId string `bson:"playerId"`
 	Platform int    `bson:"platform"`
-	Country string  `bson:"country"`
+	Country  string `bson:"country"`
 	Medals   int    `bson:"medals"`
+	Username string `bson:"username"`
 }
 
 // Change struct ----------------
