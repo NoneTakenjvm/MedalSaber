@@ -15,7 +15,7 @@ type Score struct {
 
 // Get the player who set the score
 func (score *Score) GetPlayer(region string) *Player {
-	player, err := GetPlayer(score.Platform, score.PlayerId, region, true)
+	player, err := GetPlayer(score.Platform, score.PlayerId, region, "", true)
 	if err != nil {
 		return nil
 	}

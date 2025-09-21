@@ -31,7 +31,7 @@ func GetScore(platform int, scoreId string) (Score, error) {
 }
 
 // Fetch a player from the database, creating one if they don't exist
-func GetPlayer(platform int, region string, playerId string, createIfAbsent bool) (*Player, error) {
+func GetPlayer(platform int, region string, playerId string, username string, createIfAbsent bool) (*Player, error) {
 	document, err := fetchDocument(Collections.Players, bson.M{
 		"platform": platform,
 		"playerId": playerId,
@@ -64,7 +64,7 @@ func GetPlayer(platform int, region string, playerId string, createIfAbsent bool
 				Platform: platform,
 				Region:   region,
 				Medals:   0,
-				// We can't provide a username here, it will be updated next score they set
+				Username: username,
 			}
 			err = InsertDocument(Collections.Players, newPlayer)
 			if err != nil {

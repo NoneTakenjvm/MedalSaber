@@ -27,7 +27,7 @@ func getPlayer(c *gin.Context) {
 		return
 	}
 	// Get the player by the platform
-	player, err := database.GetPlayer(platform, c.Param("region"), c.Param("playerId"), false)
+	player, err := database.GetPlayer(platform, c.Param("region"), c.Param("playerId"), "", false)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Player not found"})
 		return

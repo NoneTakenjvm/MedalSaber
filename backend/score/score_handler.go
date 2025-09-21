@@ -201,7 +201,7 @@ func calculateMedalDeltas(medalDeltas map[string]int, topTenScores []database.Sc
 func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, region string) {
 	// Apply the medal deltas to all the players in the map
 	for playerId, delta := range medalDeltas {
-		player, err := database.GetPlayer(incomingScore.GetPlatform(), region, playerId, true)
+		player, err := database.GetPlayer(incomingScore.GetPlatform(), region, playerId, incomingScore.GetPlayerName(), true)
 		if err != nil {
 			log.Printf("error when getting player: %s\n", err)
 			continue
