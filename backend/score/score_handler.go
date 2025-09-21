@@ -220,6 +220,7 @@ func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, 
 			database.Change{
 				Platform: incomingScore.GetPlatform(),
 				PlayerId: playerId,
+				Country: country,
 				Timestamp: incomingScore.GetTimestamp(),
 				MedalChange: delta,
 				ResponsibleLeaderboardId: incomingScore.GetLeaderboardId(),

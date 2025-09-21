@@ -38,6 +38,7 @@ type Player struct {
 type Change struct {
 	Platform                 int    `bson:"platform"`
 	PlayerId                 string `bson:"playerId"`
+	Country                  string `bson:"country"`
 	Timestamp                int64  `bson:"timestamp"`
 	MedalChange              int    `bson:"medalChange"`
 	ResponsibleLeaderboardId string `bson:"responsibleLeaderboardId"`

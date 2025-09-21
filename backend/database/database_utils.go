@@ -94,11 +94,22 @@ func GetPlayer(platform int, country string, playerId string, createIfAbsent boo
 }
 
 // Fetch a change from the database
-func GetChanges(platform int, playerId string, page int) ([]Change, error) {
-	cursor, err := fetchDocuments(Collections.Changes, bson.M{
+func GetChanges(platform int, playerId string, page int, before int64, after int64) ([]Change, error) {
+	// Build the mongo filter
+	filter := bson.M{
 		"platform": platform,
 		"playerId": playerId,
-	}, options.Find().SetSkip(int64(page*10)).SetLimit(10))
+	}
+	// Add the before and after filters
+	timestamp := bson.M{}
+	if before != 0 {
+		timestamp["$gte"] = before
+	}
+	if after != 0 {
+		timestamp["$lte"] = after
+	}
+	filter["timestamp"] = timestamp
+	cursor, err := fetchDocuments(Collections.Changes, filter, options.Find().SetSkip(int64(page*10)).SetLimit(10))
 	if err != nil {
 		return []Change{}, err
 	}
