@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/joho/godotenv"
+	"nonetaken.dev/medalsaber/api"
 	"nonetaken.dev/medalsaber/database"
 	"nonetaken.dev/medalsaber/websocket"
 )
@@ -18,6 +19,9 @@ func main() {
 	// Initialise the websocket handler
 	websocket.Initialise()
 	fmt.Println("Websocket handler initialised")
+
+	api.Initialise()
+	fmt.Println("API initialised")
 
 	// Define a defer function to handle the client disconnecting
 	defer func() {

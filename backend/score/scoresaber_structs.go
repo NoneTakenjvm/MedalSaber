@@ -55,7 +55,7 @@ func (message *IncomingMessageWithScore) GetTimestamp() int64 {
 		log.Printf("error when parsing timestamp: %s\n", err)
 		return 0
 	}
-	return t.Unix()
+	return t.UnixMilli()
 }
 func (message *IncomingMessageWithScore) GetModifiers() string {
 	return message.Score.Score.Modifiers

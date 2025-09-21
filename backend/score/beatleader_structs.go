@@ -24,7 +24,7 @@ type BeatLeaderResponse struct {
 	TechPP            float64               `json:"techPP"`
 	Rank              int                   `json:"rank"`
 	ResponseRank      int                   `json:"responseRank"`
-	Country           string                `json:"country"`
+	Country            string               `json:"country"`
 	FcAccuracy        float64               `json:"fcAccuracy"`
 	FcPp              float64               `json:"fcPp"`
 	Weight            float64               `json:"weight"`
@@ -93,7 +93,7 @@ func (message *BeatLeaderResponse) GetMaxScore() int {
 	return message.Leaderboard.Difficulty.MaxScore
 }
 func (message *BeatLeaderResponse) GetTimestamp() int64 {
-	return message.Timepost
+	return message.Timepost * 1000
 }
 func (message *BeatLeaderResponse) GetModifiers() string {
 	return message.Modifiers
@@ -255,7 +255,7 @@ type BeatLeaderPlayer struct {
 	Temporary         bool                      `json:"temporary"`
 	Pp                float64                   `json:"pp"`
 	Rank              int                       `json:"rank"`
-	CountryRank       int                       `json:"countryRank"`
+	CountryRank       int                       `json:"CountryRank"`
 	Level             int                       `json:"level"`
 	Experience        int                       `json:"experience"`
 	Prestige          int                       `json:"prestige"`

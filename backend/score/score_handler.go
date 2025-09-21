@@ -14,17 +14,17 @@ const (
 	BeatleaderPlatform int = 2
 )
 
-// The medal value of each (indexed) position in the leaderboard 
+// The medal value of each (indexed) position in the leaderboard
 var MedalValues = map[int]int{
-	0:  10,
-	1:  8,
-	2:  6,
-	3:  5,
-	4:  4,
-	5:  3,
-	6:  2,
-	7:  1,
-	8:  1,
+	0: 10,
+	1: 8,
+	2: 6,
+	3: 5,
+	4: 4,
+	5: 3,
+	6: 2,
+	7: 1,
+	8: 1,
 	9: 1,
 	// We need to specify the 11th position score because scores pushed out of the top 10
 	// will need to know how many medals position 11 is worth, which is 0!
@@ -74,21 +74,21 @@ func HandleScore(platform int, message []byte) {
 	if !incomingScore.IsRanked() {
 		return
 	}
-	// Handle for the country the score was set from and for the world
-	handleForCountry(incomingScore, incomingScore.GetCountry())
-	handleForCountry(incomingScore, "Global")
+	// Handle for the region the score was set from and for the world
+	handleForRegion(incomingScore, incomingScore.GetCountry(), true)
+	handleForRegion(incomingScore, "Global", false)
 }
 
-// Handle the provided score for the given country
+// Handle the provided score for the given region
 //
 // This function will:
 // - award medals to the player who set the score
 // - take medals from players who have been pushed out of the top 10
 // - remove any score pushed from the top 10
 // - update medal counts for all affected players
-func handleForCountry(incomingScore ScoreMessage, country string) {
-	// Get the country the score was set from, is it within top 10?
-	isWithinTopTen, err := database.IsWithinTopTen(incomingScore.GetPlatform(), incomingScore.GetLeaderboardId(), country, incomingScore.GetScore())
+func handleForRegion(incomingScore ScoreMessage, region string, insertScore bool) {
+	// Get the region the score was set from, is it within top 10?
+	isWithinTopTen, err := database.IsWithinTopTen(incomingScore.GetPlatform(), incomingScore.GetLeaderboardId(), region, incomingScore.GetScore())
 	if err != nil {
 		log.Printf("error when checking if a score is within top 10: %s\n", err)
 		return
@@ -97,7 +97,7 @@ func handleForCountry(incomingScore ScoreMessage, country string) {
 	if !isWithinTopTen {
 		return
 	}
-	topTenScores, err := database.GetTopTen(incomingScore.GetPlatform(), incomingScore.GetLeaderboardId(), country, incomingScore.GetPlayerId())
+	topTenScores, err := database.GetTopTen(incomingScore.GetPlatform(), incomingScore.GetLeaderboardId(), region, incomingScore.GetPlayerId())
 	if err != nil {
 		log.Printf("error when getting top 10 scores: %s\n", err)
 		return
@@ -108,8 +108,8 @@ func handleForCountry(incomingScore ScoreMessage, country string) {
 	// The player has improved their score, but their position on the leaderboard hasn't changed
 	// Or, the score is not in the top 10 at all
 	if alreadyPresent == position || position == -1 {
-		log.Printf("score from player %s (platform: %d, id: %s, country: %s) on leaderboard %s (difficulty: %s) was not improved or not within country top 10",
-			incomingScore.GetPlayerName(), incomingScore.GetPlatform(), incomingScore.GetPlayerId(), country, incomingScore.GetLeaderboardName(), incomingScore.GetDifficulty())
+		log.Printf("score from player %s (platform: %d, id: %s, region: %s) on leaderboard %s (difficulty: %s) was not improved or not within region top 10",
+			incomingScore.GetPlayerName(), incomingScore.GetPlatform(), incomingScore.GetPlayerId(), region, incomingScore.GetLeaderboardName(), incomingScore.GetDifficulty())
 		return
 	}
 	// Calculate medal deltas for all affected players
@@ -123,18 +123,20 @@ func handleForCountry(incomingScore ScoreMessage, country string) {
 			"platform": removedScore.Platform,
 		})
 	}
-	// Insert the new score into the database
-	newScore := convertIntoDatabaseScore(country, incomingScore)
-	err = database.InsertDocument(database.Collections.Scores, newScore)
-	if err != nil {
-		log.Printf("error when inserting new score: %s\n", err)
+	newScore := convertIntoDatabaseScore(incomingScore)
+	// Insert the new score into the database if applicable
+	if insertScore {
+		err = database.InsertDocument(database.Collections.Scores, newScore)
+		if err != nil {
+			log.Printf("error when inserting new score: %s\n", err)
+		}
 	}
-	// Finally, handle the medal changes for all players
-	handleMedalChanges(medalDeltas, incomingScore, country)
+	// Handle the medal changes for all players
+	handleMedalChanges(medalDeltas, incomingScore, region)
 	// Check if the player's username has changed
-	handlePotentialNameChange(newScore.GetPlayer(), incomingScore)
-	log.Printf("the score from player %s (platform: %d, id: %s, country: %s) on leaderboard %s (difficulty: %s) has been handled! the player earned position %d",
-		incomingScore.GetPlayerName(), incomingScore.GetPlatform(), incomingScore.GetPlayerId(), country, incomingScore.GetLeaderboardName(), incomingScore.GetDifficulty(), position)
+	handlePotentialNameChange(newScore.GetPlayer(region), incomingScore)
+	log.Printf("the score from player %s (platform: %d, id: %s, region: %s) on leaderboard %s (difficulty: %s) has been handled! the player earned position %d",
+		incomingScore.GetPlayerName(), incomingScore.GetPlatform(), incomingScore.GetPlayerId(), region, incomingScore.GetLeaderboardName(), incomingScore.GetDifficulty(), position)
 }
 
 // --- various single use helper functions to help organise code
@@ -164,11 +166,10 @@ func getScorePositionInTopTen(topTenScores []database.Score, incomingScore Score
 }
 
 // Convert the incoming score into a database score
-func convertIntoDatabaseScore(country string, incomingScore ScoreMessage) database.Score {
+func convertIntoDatabaseScore(incomingScore ScoreMessage) database.Score {
 	return database.Score{
 		ScoreId:       incomingScore.GetScoreId(),
 		PlayerId:      incomingScore.GetPlayerId(),
-		Country:       country,
 		LeaderboardId: incomingScore.GetLeaderboardId(),
 		Platform:      incomingScore.GetPlatform(),
 		Score:         incomingScore.GetScore(),
@@ -197,10 +198,10 @@ func calculateMedalDeltas(medalDeltas map[string]int, topTenScores []database.Sc
 }
 
 // Handle medal changes for all players in the map
-func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, country string) {
+func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, region string) {
 	// Apply the medal deltas to all the players in the map
 	for playerId, delta := range medalDeltas {
-		player, err := database.GetPlayer(incomingScore.GetPlatform(), country, playerId, true)
+		player, err := database.GetPlayer(incomingScore.GetPlatform(), region, playerId, true)
 		if err != nil {
 			log.Printf("error when getting player: %s\n", err)
 			continue
@@ -210,31 +211,30 @@ func handleMedalChanges(medalDeltas map[string]int, incomingScore ScoreMessage, 
 		if err = database.UpdateDocument(
 			database.Collections.Players,
 			bson.M{"playerId": playerId, "platform": incomingScore.GetPlatform()},
-			bson.M{"$set": bson.M{"medals": player.Medals}}); 
-		err != nil {
+			bson.M{"$set": bson.M{"medals": player.Medals}}); err != nil {
 			log.Printf("error when updating player: %s\n", err)
 		}
 		// Record the changes
 		if err = database.InsertDocument(
 			database.Collections.Changes,
 			database.Change{
-				Platform: incomingScore.GetPlatform(),
-				PlayerId: playerId,
-				Country: country,
-				Timestamp: incomingScore.GetTimestamp(),
-				MedalChange: delta,
+				Platform:                 incomingScore.GetPlatform(),
+				PlayerId:                 playerId,
+				Region:                   region,
+				Timestamp:                incomingScore.GetTimestamp(),
+				MedalChange:              delta,
 				ResponsibleLeaderboardId: incomingScore.GetLeaderboardId(),
-				ResponsiblePlayerId: incomingScore.GetPlayerId(),
-				ResponsibleScoreId: incomingScore.GetScoreId(),
-			}); 
-		err != nil {
+				ResponsiblePlayerId:      incomingScore.GetPlayerId(),
+				ResponsibleScoreId:       incomingScore.GetScoreId(),
+			}); err != nil {
 			log.Printf("error when inserting change: %s\n", err)
 		}
 	}
 }
 
+// Check whether the stored username for the player is different than the incoming score
 func handlePotentialNameChange(player *database.Player, incomingScore ScoreMessage) {
-	if player.Username != incomingScore.GetPlayerName() {
+	if player.Username == "" || player.Username != incomingScore.GetPlayerName() {
 		player.Username = incomingScore.GetPlayerName()
 		if err := database.UpdateDocument(
 			database.Collections.Players,

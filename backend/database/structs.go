@@ -3,7 +3,6 @@ package database
 type Score struct {
 	ScoreId       string `bson:"scoreId"`
 	PlayerId      string `bson:"playerId"`
-	Country       string `bson:"country"`
 	LeaderboardId string `bson:"leaderboardId"`
 	Platform      int    `bson:"platform"`
 	Score         int    `bson:"score"`
@@ -15,8 +14,8 @@ type Score struct {
 }
 
 // Get the player who set the score
-func (score *Score) GetPlayer() *Player {
-	player, err := GetPlayer(score.Platform, score.PlayerId, score.Country, false)
+func (score *Score) GetPlayer(region string) *Player {
+	player, err := GetPlayer(score.Platform, score.PlayerId, region, true)
 	if err != nil {
 		return nil
 	}
@@ -28,7 +27,7 @@ func (score *Score) GetPlayer() *Player {
 type Player struct {
 	PlayerId string `bson:"playerId"`
 	Platform int    `bson:"platform"`
-	Country  string `bson:"country"`
+	Region   string `bson:"region"`
 	Medals   int    `bson:"medals"`
 	Username string `bson:"username"`
 }
@@ -38,7 +37,7 @@ type Player struct {
 type Change struct {
 	Platform                 int    `bson:"platform"`
 	PlayerId                 string `bson:"playerId"`
-	Country                  string `bson:"country"`
+	Region                   string `bson:"region"`
 	Timestamp                int64  `bson:"timestamp"`
 	MedalChange              int    `bson:"medalChange"`
 	ResponsibleLeaderboardId string `bson:"responsibleLeaderboardId"`
