@@ -43,7 +43,7 @@ func Initialise() {
 }
 
 // Fetch a document from the provided collection using the provided filter
-func fetchDocument(collection *mongo.Collection, filter bson.M) (*mongo.SingleResult, error) {
+func FetchDocument(collection *mongo.Collection, filter bson.M) (*mongo.SingleResult, error) {
 	context, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	result := collection.FindOne(context, filter)
@@ -54,7 +54,7 @@ func fetchDocument(collection *mongo.Collection, filter bson.M) (*mongo.SingleRe
 }
 
 // Fetch multiple documents from the provided collection using the provided filter, skip and limit
-func fetchDocuments(collection *mongo.Collection, filter bson.M, options ...options.Lister[options.FindOptions]) (*mongo.Cursor, error) {
+func FetchDocuments(collection *mongo.Collection, filter bson.M, options ...options.Lister[options.FindOptions]) (*mongo.Cursor, error) {
 	context, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	return collection.Find(

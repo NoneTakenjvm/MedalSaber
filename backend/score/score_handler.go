@@ -97,7 +97,7 @@ func handleForRegion(incomingScore ScoreMessage, region string, insertScore bool
 	if !isWithinTopTen {
 		return
 	}
-	topTenScores, err := database.GetTopTen(incomingScore.GetPlatform(), incomingScore.GetLeaderboardId(), region, incomingScore.GetPlayerId())
+	topTenScores, err := database.GetTopTenScores(incomingScore.GetPlatform(), region, incomingScore.GetLeaderboardId(), 0)
 	if err != nil {
 		log.Printf("error when getting top 10 scores: %s\n", err)
 		return
